@@ -1,0 +1,162 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+    <div class="text-center">
+        <h1 class="display-4">Why do I want to work at Berkshire Hathaway Homestate Companies?</h1>
+        <button type="button" onclick="seedDatabase()">Seed Database with Reasons</button>
+        <button type="button" onclick="showSelectDialog()">Load a Reason</button>
+        <button type="button" onclick="loadAllReasons()">Load All Reasons</button>
+        <div class="feedback"></div>
+        <div id="hiring_reasons"></div>
+        <input type="hidden" id="database_seeded" value="0" />
+        <div id="select_dialog" title="Choose a Reason">
+            <p>Enter an integer to select that reason.</p>
+            <input id="select_input" />
+            <button type="button" onclick="loadReason()">Load</button>
+        </div>
+    </div>
+@section scripts {
+    <script type="text/javascript">
+        $(function () {
+            //configures the jQueryUI dialog
+            $('#select_dialog').dialog({
+                autoOpen: false,
+                height: "auto",
+                width: "auto",
+                close: function (event, ui) {
+                    $('#select_input').val("");
+                }
+            });
+        });
+        function loadAllReasons() {
+            $.ajax({
+                type: "GET",
+                url: "https://localhost:44379/api/ReasonToHire/",
+                data: JSON.stringify({ }),
+                dataType: "json",
+                contentType: 'application/json',
+                success: function (response) {
+                    //make sure to wipe out the feedback and hiring reasons divs before appending new text
+                    $('.feedback').html("");
+                    $('#hiring_reasons').html("");
+                    response.forEach(next => {
+                        $('#hiring_reasons').append("<h2>" + next.name + "</h2><p>" + next.text + "</p>");
+                    });
+                },
+                failure: function (response) {
+
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    $('#hiring_reasons').html("");
+                    $(".feedback").html("An error occured while loading the reasons.");
+                }
+            });
+        }
+        function loadReason() {
+            var reasonNumber = $('#select_input').val();
+            $('#select_dialog').dialog("close");
+            //make sure what they entered is actually an integer, and then we'll catch numbers that don't have corresponding records in the response
+            var intRegex = /^\d$/;
+            if (!intRegex.test(reasonNumber)) {
+                $(".feedback").html("You have to enter an integer.");
+                return;
+            }
+            $.ajax({
+                type: "GET",
+                url: "https://localhost:44379/api/ReasonToHire/" + reasonNumber,
+                data: JSON.stringify({ id: reasonNumber }),
+                dataType: "json",
+                contentType: 'application/json',
+                success: function (response) {
+                    $('.feedback').html("");
+                    $('#hiring_reasons').html("<h2>" + response.name + "</h2><p>" + response.text + "</p>");
+                },
+                failure: function (response) {
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    $('#hiring_reasons').html("");
+                    $(".feedback").html("That number doesn't correspond to a reason.");
+                }
+            });
+        }
+        function showSelectDialog() {
+            $('#select_dialog').dialog("open");
+        }
+        //this will seed the database with some of the many reasons I want to work at Berkshire Hathaway Homestate Companies
+        function seedDatabase() {
+            //check if they've already seeded the database this session- for the purposes of this app, I'm not worried about multiple clients viewing the page at once
+            if ($('#database_seeded').val() != "0") {
+                $('.feedback').html("You've already seeded the database- repeating the reasons won't help.");
+            }
+            else {
+                $('#database_seeded').val("1");
+                $.ajax({
+                    type: "POST",
+                    url: "https://localhost:44379/api/ReasonToHire/",
+                    data: JSON.stringify({ "name": "Exciting Technology", "text": "BHHC is using modern technology and architecture in an enterprise environment, and I want to further explore and learn about your tech stack." }),
+                    dataType: "json",
+                    contentType: 'application/json',
+                    success: function (response) {
+                        $(".feedback").append("<p>Reason #" + response.id + " created!</p>");
+                    },
+                    failure: function (response) {
+
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) {
+                        
+                    }
+                });
+                $.ajax({
+                    type: "POST",
+                    url: "https://localhost:44379/api/ReasonToHire/",
+                    data: JSON.stringify({ "name": "Team Environment", "text": "The team members that I have interacted with have really impressed me, and are the kind of coworkers I want to work with." }),
+                    dataType: "json",
+                    contentType: 'application/json',
+                    success: function (response) {
+                        $(".feedback").append("<p>Reason #" + response.id + " created!</p>");
+                    },
+                    failure: function (response) {
+
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) {
+                        
+                    }
+                });
+                $.ajax({
+                    type: "POST",
+                    url: "https://localhost:44379/api/ReasonToHire/",
+                    data: JSON.stringify({ "name": "Stable Work Situation", "text": "After having worked for a startup, I value stability in my career and want to work somewhere that I know I has the strength to survive disasters like COVID-19." }),
+                    dataType: "json",
+                    contentType: 'application/json',
+                    success: function (response) {
+                        $(".feedback").append("<p>Reason #" + response.id + " created!</p>");
+                    },
+                    failure: function (response) {
+
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) {
+                        
+                    }
+                });
+                $.ajax({
+                    type: "POST",
+                    url: "https://localhost:44379/api/ReasonToHire/",
+                    data: JSON.stringify({ "name": "Quality Benefits", "text": "Health insurance, life insurance, and a 401k are often overlooked benefits, but are high on my list of priorities." }),
+                    dataType: "json",
+                    contentType: 'application/json',
+                    success: function (response) {
+                        $(".feedback").append("<p>Reason #" + response.id + " created!</p>");
+                    },
+                    failure: function (response) {
+
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) {
+                        
+                    }
+                });
+            }
+        }
+    </script>
+}
